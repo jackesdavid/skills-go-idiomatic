@@ -1,0 +1,199 @@
+{
+  "framework": "Go Idiomatic — Idiomatic Go Code Checklist",
+  "version": "1.0",
+  "sources": [
+    "Effective Go (go.dev/doc/effective_go)",
+    "Go Code Review Comments (go.dev/wiki/CodeReviewComments)",
+    "Uber Go Style Guide (github.com/uber-go/guide)"
+  ],
+  "scoring": {
+    "states": ["pass", "fail", "na"],
+    "criterionScore": "passed / (total - na) * 100",
+    "globalScore": "average of all applicable rules across every criterion, 0-100",
+    "levels": [
+      { "min": 90, "label": "Excellent", "emoji": "🟢" },
+      { "min": 75, "label": "Good", "emoji": "🟢" },
+      { "min": 60, "label": "Acceptable", "emoji": "🟡" },
+      { "min": 40, "label": "Weak", "emoji": "🟠" },
+      { "min": 0, "label": "Critical", "emoji": "🔴" }
+    ]
+  },
+  "linterLegend": {
+    "gofmt": "gofmt / gofumpt — formatting",
+    "goimports": "goimports — import grouping & ordering",
+    "govet": "go vet — suspicious constructs (copylocks, printf, composites, lostcancel)",
+    "staticcheck": "staticcheck — correctness & simplification (SA/S/ST checks)",
+    "revive": "revive — style/lint (successor to golint)",
+    "errcheck": "errcheck — unchecked errors",
+    "errorlint": "errorlint — error wrapping & comparison",
+    "errname": "errname — Err prefix / Error suffix on errors",
+    "ireturn": "ireturn — flags returning interfaces",
+    "nakedret": "nakedret — naked returns in long functions",
+    "predeclared": "predeclared — shadowing builtins",
+    "gochecknoglobals": "gochecknoglobals — mutable package globals",
+    "gochecknoinits": "gochecknoinits — init() functions",
+    "prealloc": "prealloc — slice preallocation",
+    "perfsprint": "perfsprint — fmt vs strconv",
+    "exhaustive": "exhaustive — enum switch completeness",
+    "forcetypeassert": "forcetypeassert — unchecked type assertions",
+    "nestif": "nestif / gocognit — deep nesting",
+    "containedctx": "containedctx — context stored in struct"
+  },
+  "dimensions": [
+    {
+      "id": "FMT",
+      "name": "Formatting & Tooling",
+      "summary": "Mechanical style handled by Go's own tools.",
+      "rules": [
+        { "id": "FMT-01", "text": "Code is gofmt/gofumpt-clean (no manual alignment, tabs for indentation).", "lint": "gofmt" },
+        { "id": "FMT-02", "text": "Imports are grouped (stdlib, then third-party) and ordered via goimports.", "lint": "goimports" },
+        { "id": "FMT-03", "text": "Lines break on semantics rather than an arbitrary hard column; no needlessly long lines.", "lint": "revive" },
+        { "id": "FMT-04", "text": "Identifiers use MixedCaps/mixedCaps, never ALL_CAPS or snake_case.", "lint": "revive" }
+      ]
+    },
+    {
+      "id": "NAM",
+      "name": "Naming",
+      "summary": "Names are short, consistent, and follow Go conventions.",
+      "rules": [
+        { "id": "NAM-01", "text": "Initialisms keep consistent case (URL, ID, HTTP — not Url, Id, Http).", "lint": "staticcheck" },
+        { "id": "NAM-02", "text": "Package names are short, lower-case, no underscores, singular, and not stuttered by callers.", "lint": "revive" },
+        { "id": "NAM-03", "text": "Method receivers use a 1–2 letter abbreviation, consistent across the type (not 'self'/'this'/'me').", "lint": "revive" },
+        { "id": "NAM-04", "text": "Variable names are short in small scopes (i, c, r) and more descriptive only at package scope.", "lint": null },
+        { "id": "NAM-05", "text": "Getters omit the 'Get' prefix (owner.Owner(), not owner.GetOwner()).", "lint": null },
+        { "id": "NAM-06", "text": "Single-method interfaces are named with the -er suffix (Reader, Formatter) where natural.", "lint": null },
+        { "id": "NAM-07", "text": "Names don't stutter with their package (http.Server, not http.HTTPServer).", "lint": "revive" }
+      ]
+    },
+    {
+      "id": "CMT",
+      "name": "Comments & Documentation",
+      "summary": "Doc comments are present and well-formed.",
+      "rules": [
+        { "id": "CMT-01", "text": "Every exported name has a doc comment beginning with the name and ending with a period.", "lint": "revive" },
+        { "id": "CMT-02", "text": "Each package has a package comment adjacent to the package clause (no blank line).", "lint": "staticcheck" },
+        { "id": "CMT-03", "text": "Comments are full sentences; they explain why, not restate the obvious what.", "lint": null }
+      ]
+    },
+    {
+      "id": "ERR",
+      "name": "Error Handling",
+      "summary": "Errors are values: returned, wrapped, and checked — never exceptions.",
+      "rules": [
+        { "id": "ERR-01", "text": "All returned errors are checked; none are silently discarded with '_'.", "lint": "errcheck" },
+        { "id": "ERR-02", "text": "Normal failure paths return errors rather than calling panic.", "lint": null },
+        { "id": "ERR-03", "text": "Error strings are lowercase and not ended with punctuation.", "lint": "staticcheck" },
+        { "id": "ERR-04", "text": "Wrapped errors use fmt.Errorf with %w; comparisons use errors.Is/errors.As (not ==/type-switch on strings).", "lint": "errorlint" },
+        { "id": "ERR-05", "text": "Sentinel errors are exported as ErrXxx; custom error types are named XxxError.", "lint": "errname" },
+        { "id": "ERR-06", "text": "Each error is handled once — not logged and returned at the same level.", "lint": null },
+        { "id": "ERR-07", "text": "Validity is signaled by a returned (value, ok) or (value, error), not by in-band sentinels like -1 or \"\".", "lint": null },
+        { "id": "ERR-08", "text": "Error flow is handled first with an early return, keeping the happy path un-indented.", "lint": "revive" }
+      ]
+    },
+    {
+      "id": "CTL",
+      "name": "Control Flow & Readability",
+      "summary": "Shallow nesting, early returns, minimal ceremony.",
+      "rules": [
+        { "id": "CTL-01", "text": "No 'else' after an if-branch that already returns/continues/breaks.", "lint": "revive" },
+        { "id": "CTL-02", "text": "Nesting stays shallow; guard clauses and continue are used instead of deep if-pyramids.", "lint": "nestif" },
+        { "id": "CTL-03", "text": "Naked returns appear only in very short functions, not medium/long ones.", "lint": "nakedret" },
+        { "id": "CTL-04", "text": "Named result parameters are used only when they aid clarity, not as redundant noise.", "lint": null }
+      ]
+    },
+    {
+      "id": "IFC",
+      "name": "Interfaces & Types",
+      "summary": "Accept interfaces, return structs; keep interfaces small and consumer-defined.",
+      "rules": [
+        { "id": "IFC-01", "text": "Functions accept interfaces and return concrete types; they don't return interfaces by default.", "lint": "ireturn" },
+        { "id": "IFC-02", "text": "Interfaces are declared in the consumer package that uses them, not the producer.", "lint": null },
+        { "id": "IFC-03", "text": "Interfaces are small (often one method); no broad 'everything' interfaces.", "lint": null },
+        { "id": "IFC-04", "text": "Code passes interface values, never pointers to interfaces.", "lint": null },
+        { "id": "IFC-05", "text": "Receiver type (pointer vs value) is consistent per type; pointer used for mutation, large structs, or sync fields.", "lint": null },
+        { "id": "IFC-06", "text": "Type assertions use the comma-ok form (v, ok := x.(T)); single-value assertions are avoided.", "lint": "forcetypeassert" },
+        { "id": "IFC-07", "text": "Compile-time interface checks use 'var _ Iface = (*T)(nil)' where helpful.", "lint": null }
+      ]
+    },
+    {
+      "id": "CON",
+      "name": "Concurrency",
+      "summary": "Clear goroutine lifetimes and disciplined channel/context use.",
+      "rules": [
+        { "id": "CON-01", "text": "Every goroutine has a clear, documented exit condition; no fire-and-forget leaks.", "lint": null },
+        { "id": "CON-02", "text": "APIs are synchronous by default, letting callers add concurrency.", "lint": null },
+        { "id": "CON-03", "text": "Channels are unbuffered by default; buffer sizes >1 are justified.", "lint": null },
+        { "id": "CON-04", "text": "context.Context is the first parameter and is not stored in a struct field.", "lint": "containedctx" },
+        { "id": "CON-05", "text": "sync.Mutex/RWMutex are zero-value, non-pointer fields and are never copied.", "lint": "govet" },
+        { "id": "CON-06", "text": "Slices/maps are copied at trust boundaries before storing or returning internal state.", "lint": null }
+      ]
+    },
+    {
+      "id": "STR",
+      "name": "Structs & Initialization",
+      "summary": "Clear, keyed initialization and purposeful embedding.",
+      "rules": [
+        { "id": "STR-01", "text": "Struct literals use field names; positional (unkeyed) literals are avoided.", "lint": "govet" },
+        { "id": "STR-02", "text": "Zero-value fields are omitted from struct literals.", "lint": null },
+        { "id": "STR-03", "text": "Embedding is used only for real composition; embedded fields sit at the top of the field list.", "lint": null },
+        { "id": "STR-04", "text": "Flexible constructors use functional options rather than many optional parameters or telescoping constructors.", "lint": null },
+        { "id": "STR-05", "text": "Enums start iota at 1 (or intentionally use the zero value) so an unset value is detectable.", "lint": null },
+        { "id": "STR-06", "text": "Exhaustive switches over enum-like types handle all cases.", "lint": "exhaustive" }
+      ]
+    },
+    {
+      "id": "PKG",
+      "name": "Packages & Globals",
+      "summary": "Healthy package boundaries and no hidden global state.",
+      "rules": [
+        { "id": "PKG-01", "text": "No mutable package-level globals; shared state is passed via dependency injection.", "lint": "gochecknoglobals" },
+        { "id": "PKG-02", "text": "init() is avoided or kept trivial, deterministic, and side-effect free.", "lint": "gochecknoinits" },
+        { "id": "PKG-03", "text": "os.Exit / log.Fatal are called only in main(), not in library code.", "lint": "revive" },
+        { "id": "PKG-04", "text": "Blank imports (import _) appear only in main or test packages; dot imports are avoided.", "lint": "revive" },
+        { "id": "PKG-05", "text": "Predeclared identifiers (error, string, len, new…) are not shadowed.", "lint": "predeclared" }
+      ]
+    },
+    {
+      "id": "DAT",
+      "name": "Data, Slices & Stdlib",
+      "summary": "Idiomatic use of slices, maps, and the standard library.",
+      "rules": [
+        { "id": "DAT-01", "text": "Empty slices are declared as 'var s []T' (nil), and emptiness is checked with len(s) == 0.", "lint": "staticcheck" },
+        { "id": "DAT-02", "text": "Slices/maps with a known size are preallocated with a capacity hint via make().", "lint": "prealloc" },
+        { "id": "DAT-03", "text": "Primitive conversions prefer strconv over fmt.Sprint for performance-sensitive code.", "lint": "perfsprint" },
+        { "id": "DAT-04", "text": "Time is modeled with time.Time / time.Duration, not raw ints; no 24h/365d assumptions.", "lint": null },
+        { "id": "DAT-05", "text": "Cryptographic randomness uses crypto/rand, never math/rand.", "lint": "gosec" },
+        { "id": "DAT-06", "text": "defer is used for cleanup (Close/Unlock) right after acquiring the resource.", "lint": null }
+      ]
+    },
+    {
+      "id": "TST",
+      "name": "Testing",
+      "summary": "Table-driven tests and useful failures.",
+      "rules": [
+        { "id": "TST-01", "text": "Parametric tests use the table-driven pattern with named subtests (t.Run).", "lint": null },
+        { "id": "TST-02", "text": "Test failures print input, got, and want — not just 'failed'.", "lint": null },
+        { "id": "TST-03", "text": "Public, non-trivial APIs have runnable Example functions.", "lint": null }
+      ]
+    },
+    {
+      "id": "JCS",
+      "name": "Non-Idiomatic Patterns (Java/C#-isms)",
+      "summary": "OOP-from-other-languages habits that read as un-Go. The flagship dimension for this skill.",
+      "rules": [
+        { "id": "JCS-01", "text": "Interfaces are NOT prefixed with 'I' (Store, not IStore).", "lint": null },
+        { "id": "JCS-02", "text": "No Abstract*/Base*/*Impl types emulating class inheritance; behavior is composed.", "lint": null },
+        { "id": "JCS-03", "text": "No exception-style control flow: panic/recover is not used in place of returning errors.", "lint": null },
+        { "id": "JCS-04", "text": "No getter/setter pairs over plain data — export the field instead.", "lint": null },
+        { "id": "JCS-05", "text": "Construction uses NewX functions (and functional options); no Factory/Builder 'classes' where those suffice.", "lint": null },
+        { "id": "JCS-06", "text": "Constants use MixedCaps (MaxRetries), not Java/C# ALL_CAPS (MAX_RETRIES).", "lint": "staticcheck" },
+        { "id": "JCS-07", "text": "Packages aren't catch-all 'manager/service/util/helpers/common/base' dumping grounds named after layers.", "lint": null },
+        { "id": "JCS-08", "text": "Optional/absent values use zero values, (T, ok), or (T, error) — not pointers-to-everything to mimic nullable types.", "lint": null },
+        { "id": "JCS-09", "text": "Stateless behavior is package-level functions, not methods on an empty 'service'/'helper' struct used as a class.", "lint": null },
+        { "id": "JCS-10", "text": "Functions don't return interfaces 'for flexibility'; they return concrete types (accept interfaces, return structs).", "lint": "ireturn" },
+        { "id": "JCS-11", "text": "Deep embedding is not used to simulate subclass hierarchies; composition stays shallow and explicit.", "lint": null },
+        { "id": "JCS-12", "text": "Error handling doesn't build large exception class hierarchies; it uses sentinel errors + wrapping + errors.Is/As.", "lint": null }
+      ]
+    }
+  ]
+}
