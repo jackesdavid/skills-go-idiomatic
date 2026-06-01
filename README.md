@@ -16,6 +16,14 @@ _Point it at a Go package. Get back every non-idiomatic pattern, a prioritized t
 
 ---
 
+> 📚 **Where the 71 rules come from:** they were collected and adapted from the three most
+> authoritative Go references — [**Effective Go**](https://go.dev/doc/effective_go), the official
+> [**Go Code Review Comments**](https://go.dev/wiki/CodeReviewComments), and the
+> [**Uber Go Style Guide**](https://github.com/uber-go/guide/blob/master/style.md). A strong,
+> well-tested baseline, not gospel: every rule is editable in [`reference/rules.json`](reference/rules.json).
+
+---
+
 ## ✨ What it does
 
 `go-idiomatic` reviews a Go package or file against **12 dimensions** (71 concrete rules) and exports
